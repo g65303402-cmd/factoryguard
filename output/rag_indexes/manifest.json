@@ -1,0 +1,26 @@
+{
+  "embedding_model": "jhgan/ko-sroberta-multitask",
+  "embedding_model_max_seq_length": 128,
+  "distance": "inner_product_on_l2_normalized_embeddings",
+  "groups": {
+    "safety": {
+      "corpora": [
+        "safety_authority",
+        "safety_guidance"
+      ],
+      "child_count": 329,
+      "embedding_dimension": 768,
+      "index_path": "output\\rag_indexes\\safety\\index.faiss",
+      "metadata_path": "output\\rag_indexes\\safety\\metadata.jsonl"
+    },
+    "privacy": {
+      "corpora": [
+        "privacy"
+      ],
+      "child_count": 29,
+      "embedding_dimension": 768,
+      "index_path": "output\\rag_indexes\\privacy\\index.faiss",
+      "metadata_path": "output\\rag_indexes\\privacy\\metadata.jsonl"
+    }
+  }
+}
