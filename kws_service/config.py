@@ -14,7 +14,7 @@ class KeywordSpec:
 
 DEFAULT_KEYWORDS: tuple[KeywordSpec, ...] = (
     KeywordSpec("멈춰", "ko", ("멈처", "멈춰줘", "멈추세요")),
-    KeywordSpec("정지", "ko", ("중지", "스톱")),
+    KeywordSpec("정지", "ko", ("중지", "스톱", "스탑")),
     KeywordSpec("살려줘", "ko", ("도와줘", "위험해"), "비상정지"),
     KeywordSpec("stop", "en", ("emergency stop", "help")),
     KeywordSpec("dung lai", "vi", ("dừng lại", "cuu toi", "cứu tôi")),
@@ -36,4 +36,3 @@ class KwsSettings:
 
 def get_settings() -> KwsSettings:
     return KwsSettings()
-
