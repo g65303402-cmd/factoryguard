@@ -15,9 +15,10 @@ KWS는 음성 기반 긴급정지 트리거와 이벤트 메타데이터 생성�
 
 ## 현재 구현
 
-현재는 실제 openWakeWord 모델을 붙이기 전 단계의 API 골격이다.
+현재는 실제 마이크 입력을 받는 경로와 openWakeWord 모델 어댑터를 포함한다. 모델 파일이 없을 때는 마이크 녹음까지는 가능하지만 감지는 `not configured`로 반환된다.
 
-- `kws_service/detector.py`: 시뮬레이션 키워드 감지기와 openWakeWord 어댑터 자리
+- `kws_service/microphone.py`: 마이크 장치 조회와 단발 녹음
+- `kws_service/detector.py`: openWakeWord 오디오 감지기와 deprecated 텍스트 시뮬레이션 감지기
 - `kws_service/event_builder.py`: KWS 감지 결과를 RAG/Backend 이벤트 JSON으로 변환
 - `kws_service/actuator.py`: 실제 컨베이어가 없는 상태에서 쓰는 `dry_run` 정지 액추에이터
 - `kws_service/api.py`: FastAPI 엔드포인트
@@ -36,6 +37,8 @@ http://localhost:8020/docs
 
 ## 시뮬레이션 테스트
 
+`/kws/simulate`는 텍스트 기반 smoke test 용도로만 남겨둔다. 실제 KWS 흐름은 아래 마이크 입력 엔드포인트를 사용한다.
+
 ```python
 import requests
 
@@ -52,6 +55,58 @@ print(response.json())
 ```
 
 RAG API가 `8010` 포트에서 실행 중이면 `call_rag=True`로 두어 KWS 이벤트가 법령 근거 검색까지 이어지는지 확인할 수 있다.
+
+## 마이크 입력 테스트
+
+선택 의존성 설치:
+
+```powershell
+.\.rag_venv\Scripts\python.exe -m pip install -r requirements-kws.txt
+```
+
+마이크 장치 확인:
+
+```text
+GET http://localhost:8020/kws/mic/devices
+```
+
+마이크 캡처만 확인:
+
+```python
+import requests
+
+payload = {"duration_seconds": 1, "device": 12}
+response = requests.post("http://localhost:8020/kws/mic/check-capture", json=payload, timeout=15)
+print(response.json())
+```
+
+`ok=true`, `captured_frames>0`, `rms>0`이면 마이크 입력 경로는 살아 있다.
+
+openWakeWord 모델 파일 경로를 환경변수로 지정한다. 여러 개면 세미콜론으로 구분한다.
+
+```powershell
+$env:KWS_MODEL_PATHS="models\stop.onnx;models\help.onnx"
+.\run_kws_api.ps1
+```
+
+단발 녹음 후 감지:
+
+```python
+import requests
+
+payload = {
+    "duration_seconds": 5,
+    "location": "컨베이어 1번 라인 하부",
+    "line_id": "line-1",
+    "force_stop": True,
+    "call_rag": False
+}
+
+response = requests.post("http://localhost:8020/kws/mic/listen-once", json=payload, timeout=15)
+print(response.json())
+```
+
+`KWS_MODEL_PATHS`가 비어 있으면 `/kws/mic/listen-once`는 녹음하지 않고 설정 오류를 반환한다. 모델 없이 마이크 입력만 검증할 때는 `/kws/mic/check-capture`를 사용한다.
 
 ## 물리 컨베이어가 없을 때 정지 검증
 
@@ -80,9 +135,8 @@ RAG API가 `8010` 포트에서 실행 중이면 `call_rag=True`로 두어 KWS �
 
 ## 다음 단계
 
-1. openWakeWord 또는 팀 KWS 모델을 `OpenWakeWordDetector`에 연결
-2. 마이크 스트리밍 입력 추가
+1. `KWS_MODEL_PATHS`에 팀 KWS 모델 파일 연결
+2. 연속 스트리밍 모드 추가
 3. 소음 샘플에서 오탐/미탐 평가
 4. Backend 이벤트 API URL 연결
 5. 실제 릴레이/PLC 어댑터 추가
-

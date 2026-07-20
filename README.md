@@ -9,3 +9,4 @@
 - 실행: `.\run_rag_api.ps1`
 - KWS 실행: `.\run_kws_api.ps1`
 - Swagger 문서: `http://localhost:8010/docs`
+- KWS Swagger 문서: `http://localhost:8020/docs`

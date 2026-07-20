@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 import re
 import time
+
+import numpy as np
 
 from .config import KwsSettings, KeywordSpec
 from .schemas import KwsDetection
@@ -60,18 +63,69 @@ class SimulationKeywordDetector:
 
 
 class OpenWakeWordDetector:
-    """Placeholder adapter for the real streaming KWS model.
+    """Adapter for real openWakeWord microphone inference.
 
-    The project can keep the API stable while the model owner swaps this adapter
-    with openWakeWord microphone inference.
+    Configure model files with `KWS_MODEL_PATHS`, separated by semicolons.
     """
 
     def __init__(self, settings: KwsSettings) -> None:
         self.settings = settings
+        self.name = "openwakeword"
+        if not settings.model_paths:
+            raise RuntimeError("KWS_MODEL_PATHS is empty. Provide one or more openWakeWord model files.")
+        missing = [path for path in settings.model_paths if not Path(path).exists()]
+        if missing:
+            raise RuntimeError(f"Missing KWS model file(s): {missing}")
         try:
-            import openwakeword  # noqa: F401
+            from openwakeword.model import Model
         except ModuleNotFoundError as exc:
             raise RuntimeError(
-                "openWakeWord is not installed. Use simulation mode or install/configure the real KWS model."
+                "openWakeWord is not installed. Install it or keep using simulation mode."
             ) from exc
+        self.model = Model(wakeword_models=list(settings.model_paths))
+        self._last_fire_at = 0.0
 
+    def detect_audio(self, audio: np.ndarray) -> KwsDetection:
+        now = time.monotonic()
+        if now - self._last_fire_at < self.settings.cooldown_seconds:
+            return KwsDetection(detected=False, detector=self.name, detail={"reason": "cooldown"})
+
+        pcm = ensure_int16_mono(audio)
+        frame_size = max(1, int(self.settings.microphone_sample_rate * self.settings.microphone_block_ms / 1000))
+        best_label = None
+        best_score = 0.0
+        for start in range(0, len(pcm) - frame_size + 1, frame_size):
+            frame = pcm[start : start + frame_size]
+            prediction = self.model.predict(frame)
+            for label, score in prediction.items():
+                if float(score) > best_score:
+                    best_label = label
+                    best_score = float(score)
+
+        if best_label and best_score >= self.settings.threshold:
+            self._last_fire_at = now
+            return KwsDetection(
+                detected=True,
+                keyword=best_label,
+                confidence=best_score,
+                risk_type="비상정지",
+                detector=self.name,
+                detail={"model_paths": list(self.settings.model_paths)},
+            )
+        return KwsDetection(
+            detected=False,
+            keyword=best_label,
+            confidence=best_score,
+            detector=self.name,
+            detail={"model_paths": list(self.settings.model_paths)},
+        )
+
+
+def ensure_int16_mono(audio: np.ndarray) -> np.ndarray:
+    array = np.asarray(audio)
+    if array.ndim > 1:
+        array = array[:, 0]
+    if array.dtype == np.int16:
+        return np.ascontiguousarray(array)
+    array = np.clip(array.astype("float32"), -1.0, 1.0)
+    return np.ascontiguousarray((array * 32767).astype(np.int16))
