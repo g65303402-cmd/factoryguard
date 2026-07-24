@@ -1,0 +1,11 @@
+{
+  "source_dir": "conveyor_rag_parent_child_chunks_v1",
+  "review_file": "conveyor_rag_parent_child_chunks_v1\\rag_chunk_review.xlsx",
+  "source_parent_count": 91,
+  "source_child_count": 358,
+  "review_row_count": 358,
+  "kept_parent_count": 91,
+  "kept_child_count": 358,
+  "excluded_child_count": 0,
+  "note": "Chunks were not regenerated; only review include/exclude decisions were applied."
+}

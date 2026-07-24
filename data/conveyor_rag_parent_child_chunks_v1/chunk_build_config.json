@@ -1,0 +1,19 @@
+{
+  "child_chunk_size_tokens": 100,
+  "child_chunk_overlap_tokens": 20,
+  "parent_chunk_size": "의미 단위",
+  "embedding_model": "jhgan/ko-sroberta-multitask",
+  "embedding_model_max_seq_length": 128,
+  "tokenizer_class": "BertTokenizer (do_lower_case=false) / WordPiece",
+  "tokenizer_vocab_size": 32000,
+  "token_count_policy": "child 본문은 특수토큰 제외 100 이하; embed_text는 [CLS]/[SEP] 포함 128 이하",
+  "parent_count": 91,
+  "child_count": 358,
+  "exclusion_or_dedup_count": 8,
+  "child_dedup_removed_count": 0,
+  "exact_overlap_verified_pairs": 267,
+  "unknown_token_count": 0,
+  "referential_integrity": "PASS",
+  "token_limit_check": "PASS",
+  "overlap_check": "PASS"
+}
