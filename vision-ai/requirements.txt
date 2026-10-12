@@ -1,0 +1,12 @@
+opencv-python==4.13.0.92
+numpy==2.4.4
+openai==2.45.0
+pytest==9.1.1
+ultralytics==8.4.95
+requests==2.33.1
+fastapi
+uvicorn
+python-multipart
+httpx
+loguru
+pillow

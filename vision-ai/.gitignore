@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+data/
+key/openai_api_key
+.env
+zones_config.json
+*.pt
+sample_data/*_result.jpg
