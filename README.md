@@ -23,8 +23,6 @@
 
 ## 아키텍처
 
-![기술 스택](vision-ai/docs/기술스택_다이어그램.png)
-
 ```mermaid
 flowchart LR
     CAM[카메라 / CCTV<br/>OpenCV] --> G[제스처·쓰러짐 감지<br/>MediaPipe]
@@ -46,6 +44,8 @@ flowchart LR
 실시간 정지 경로(감지 → 판정 → 정지)와 사후 분석 경로(Vision LLM·RAG·리포트)는 분리되어 있다. RAG나 LLM이 느리거나 실패해도 정지에는 영향을 주지 않는다.
 
 ### 기술 스택
+
+![기술 스택](vision-ai/docs/기술스택_다이어그램.png)
 
 | 계층 | 항목 | 기술 |
 |---|---|---|
